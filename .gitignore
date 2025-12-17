@@ -1,0 +1,16 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+
+# Ambiente
+.env
+.env.local
+
+# Build
+dist/
+build/
+
+# Banco local
+backend/database.sqlite
