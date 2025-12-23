@@ -13,7 +13,7 @@ function TopBar() {
 
   async function loadUserName() {
     try {
-      const res = await api.get('/auth/me');
+      const res = await api.get('/api/auth/me');
       // tenta usar firstName; se não tiver, usa email
       setUserName(res.data.firstName || res.data.email);
     } catch (err) {
