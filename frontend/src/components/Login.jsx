@@ -23,16 +23,18 @@ function Login() {
         password,
       });
 
+      // desestrutura o token da resposta
       const { token } = response.data;
 
-      localStorage.setItem('token', response.data.token);
-localStorage.setItem('circleId', '1'); // MOCK temporário
-navigate('/dashboard');
+      // Salva token e circleId (mock temporário)
+      localStorage.setItem('token', token);
+      localStorage.setItem('circleId', '1'); // MOCK temporário
 
-      // redireciona para dashboard (ajuste a rota se for outra)
+      // redireciona para dashboard (apenas uma vez)
       navigate('/dashboard');
     } catch (err) {
-      console.error(err);
+      console.error('ERRO NO LOGIN:', err?.response?.data || err.message);
+
       const msg =
         err.response?.data?.message ||
         err.response?.data?.error ||
