@@ -1,8 +1,8 @@
-// src/components/TransactionForm.jsx
+// C:\Projetos\controle-financeiro\frontend\src\components\TransactionForm.jsx
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 
-function TransactionForm({ circleId, onSaved, onCancel }) {
+function TransactionForm({ circleId, onSaved, onCancel, transaction }) { // Recebe 'transaction'
   const [date, setDate] = useState('');
   const [weekDay, setWeekDay] = useState('');
   const [type, setType] = useState('income');
@@ -15,9 +15,35 @@ function TransactionForm({ circleId, onSaved, onCancel }) {
   const [isFixed, setIsFixed] = useState(false);
   const [error, setError] = useState('');
 
+  // Preenche o formulário se uma transação for passada para edição
+  useEffect(() => {
+    if (transaction) {
+      setDate(transaction.date);
+      setType(transaction.type);
+      setPersonRole(transaction.personRole);
+      setCategory(transaction.category);
+      setAmount(transaction.amount);
+      setDescription(transaction.description || '');
+      setPaymentMethod(transaction.paymentMethod || '');
+      setStatus(transaction.status || 'paid');
+      setIsFixed(transaction.isFixed);
+    } else {
+      // Limpa o formulário para nova transação
+      setDate('');
+      setType('income');
+      setPersonRole('Motorista');
+      setCategory('');
+      setAmount('');
+      setDescription('');
+      setPaymentMethod('');
+      setStatus('paid');
+      setIsFixed(false);
+    }
+  }, [transaction]); // Depende da transação para edição
+
   useEffect(() => {
     if (date) {
-      const d = new Date(date);
+      const d = new Date(date + 'T00:00:00'); // Adiciona T00:00:00 para evitar problemas de fuso horário
       const opts = { weekday: 'long' };
       const wd = d.toLocaleDateString('pt-BR', opts);
       setWeekDay(wd.charAt(0).toUpperCase() + wd.slice(1));
@@ -42,7 +68,7 @@ function TransactionForm({ circleId, onSaved, onCancel }) {
     }
 
     try {
-      await api.post(`/circles/${circleId}/transactions`, {
+      const payload = {
         date,
         type,
         personRole,
@@ -52,7 +78,15 @@ function TransactionForm({ circleId, onSaved, onCancel }) {
         paymentMethod,
         status,
         isFixed
-      });
+      };
+
+      if (transaction) {
+        // Se estiver editando, usa PUT
+        await api.put(`/circles/${circleId}/transactions/${transaction.id}`, payload);
+      } else {
+        // Se for nova transação, usa POST
+        await api.post(`/circles/${circleId}/transactions`, payload);
+      }
 
       if (onSaved) onSaved();
     } catch (err) {
@@ -63,7 +97,7 @@ function TransactionForm({ circleId, onSaved, onCancel }) {
 
   return (
     <div className="transaction-form">
-      <h3>Nova transação</h3>
+      <h3>{transaction ? 'Editar transação' : 'Nova transação'}</h3> {/* Título dinâmico */}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>Data*</label>
@@ -167,7 +201,7 @@ function TransactionForm({ circleId, onSaved, onCancel }) {
 
         <div className="form-actions">
           <button type="submit" className="btn-primary">
-            Salvar
+            {transaction ? 'Salvar alterações' : 'Salvar'}
           </button>
           <button type="button" className="btn-secondary" onClick={onCancel}>
             Cancelar

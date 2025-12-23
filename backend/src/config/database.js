@@ -1,12 +1,21 @@
-// src/config/database.js
 const { Sequelize } = require('sequelize');
-const path = require('path');
 
-// Vamos usar SQLite em arquivo, para ficar simples no seu computador
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: path.join(__dirname, '..', '..', 'database.sqlite'),
-  logging: false
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  console.error('DATABASE_URL não definida. Verifique o arquivo .env');
+}
+
+const sequelize = new Sequelize(databaseUrl, {
+  dialect: 'postgres',
+  protocol: 'postgres',
+  logging: false,
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false,
+    },
+  },
 });
 
 module.exports = sequelize;

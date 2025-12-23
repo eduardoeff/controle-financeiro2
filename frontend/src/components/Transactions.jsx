@@ -1,4 +1,4 @@
-// src/components/Transactions.jsx
+// C:\Projetos\controle-financeiro\frontend\src\components\Transactions.jsx
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import TransactionForm from './TransactionForm';
@@ -14,6 +14,7 @@ function Transactions() {
     status: ''
   });
   const [showForm, setShowForm] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState(null); // Nova variável de estado
 
   useEffect(() => {
     if (!circleId) return;
@@ -58,7 +59,25 @@ function Transactions() {
 
   async function handleSaved() {
     setShowForm(false);
+    setEditingTransaction(null); // Limpa a transação em edição
     await loadTransactions();
+  }
+
+  function handleEdit(transaction) {
+    setEditingTransaction(transaction);
+    setShowForm(true);
+  }
+
+  async function handleDelete(transactionId) {
+    if (window.confirm('Tem certeza que deseja excluir esta transação?')) {
+      try {
+        await api.delete(`/circles/${circleId}/transactions/${transactionId}`);
+        await loadTransactions();
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao excluir transação.');
+      }
+    }
   }
 
   return (
@@ -68,7 +87,7 @@ function Transactions() {
         <div className="actions">
           <button
             className="btn-primary"
-            onClick={() => setShowForm(true)}
+            onClick={() => { setShowForm(true); setEditingTransaction(null); }} // Para nova transação, limpa a edição
           >
             Nova Transação
           </button>
@@ -152,7 +171,8 @@ function Transactions() {
             <TransactionForm
               circleId={circleId}
               onSaved={handleSaved}
-              onCancel={() => setShowForm(false)}
+              onCancel={() => { setShowForm(false); setEditingTransaction(null); }}
+              transaction={editingTransaction} // Passa a transação para edição
             />
           </div>
         </div>
@@ -170,6 +190,7 @@ function Transactions() {
               <th>Descrição</th>
               <th>Valor (R$)</th>
               <th>Status</th>
+              <th>Ações</th> {/* Nova coluna */}
             </tr>
           </thead>
           <tbody>
@@ -189,12 +210,16 @@ function Transactions() {
                     '-'
                   )}
                 </td>
+                <td>
+                  <button className="btn-action" onClick={() => handleEdit(tx)}>Editar</button>
+                  <button className="btn-action" onClick={() => handleDelete(tx.id)}>Excluir</button>
+                </td>
               </tr>
             ))}
 
             {transactions.length === 0 && (
               <tr>
-                <td colSpan="8">Nenhuma transação encontrada.</td>
+                <td colSpan="9">Nenhuma transação encontrada.</td> {/* Colspan ajustado */}
               </tr>
             )}
           </tbody>

@@ -1,12 +1,14 @@
 // src/components/Login.jsx
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
-function Login({ onLogin, onGoToRegister, onGoToForgotPassword }) {
+function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPass, setShowPass] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // estado correto
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -24,7 +26,7 @@ function Login({ onLogin, onGoToRegister, onGoToForgotPassword }) {
         localStorage.setItem('circleId', circles[0].id);
       }
 
-      if (onLogin) onLogin();
+      navigate('/dashboard');
     } catch (err) {
       console.error(err);
       setError('Email ou senha inválidos.');
@@ -33,62 +35,50 @@ function Login({ onLogin, onGoToRegister, onGoToForgotPassword }) {
 
   return (
     <div className="auth-container">
-      <h2>Entrar</h2>
+      <h2>🔐 Login</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>Email*</label>
+          <label>E-mail*</label>
           <input
             type="email"
             placeholder="seuemail@exemplo.com"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
 
         <div className="form-group">
           <label>Senha*</label>
-          <div className="password-wrapper">
+          <div className="password-input">
             <input
-              type={showPass ? 'text' : 'password'}
-              placeholder="Sua senha"
+              type={showPassword ? 'text' : 'password'}
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="off"
+              aria-label="Senha"
             />
             <button
               type="button"
               className="toggle-password"
-              onClick={() => setShowPass(p => !p)}
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
             >
-              {showPass ? 'Ocultar' : 'Mostrar'}
+              {showPassword ? '👁️' : '👁️‍🗨️'}
             </button>
           </div>
         </div>
 
         {error && <p className="error">{error}</p>}
 
-        <button type="submit" className="btn-primary">
-          Entrar
-        </button>
-
-        <div className="auth-links">
-          <button
-            type="button"
-            className="link-button"
-            onClick={onGoToForgotPassword}
-          >
-            Esqueci a senha
-          </button>
-          <button
-            type="button"
-            className="link-button"
-            onClick={onGoToRegister}
-          >
-            Criar conta
-          </button>
-        </div>
+        <button type="submit">Entrar</button>
       </form>
+
+      <div className="auth-links">
+        <Link to="/register">✨ Criar conta</Link>
+        <Link to="/forgot-password">🔑 Esqueci a senha</Link>
+      </div>
     </div>
   );
 }

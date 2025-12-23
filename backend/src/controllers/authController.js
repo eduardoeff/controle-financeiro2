@@ -112,7 +112,33 @@ async function login(req, res) {
   }
 }
 
+// GET /auth/me
+async function me(req, res) {
+  try {
+    const userId = req.user.id;
+    const user = await User.findByPk(userId, {
+      attributes: ['id', 'name', 'lastName', 'email', 'phone']
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    return res.json({
+      id: user.id,
+      firstName: user.name,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Erro ao buscar dados do usuário.' });
+  }
+}
+
 module.exports = {
   register,
   login,
+  me,
 };

@@ -1,6 +1,15 @@
 // src/components/Dashboard.jsx
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 function Dashboard() {
   const [circleId] = useState(localStorage.getItem('circleId'));
@@ -18,13 +27,6 @@ function Dashboard() {
     loadSummary();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [circleId, month]);
-
-  function getLabelForMonth(m) {
-    if (!m) return '';
-    const [year, mon] = m.split('-');
-    const date = new Date(Number(year), Number(mon) - 1, 1);
-    return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-  }
 
   async function loadSummary() {
     try {
@@ -46,6 +48,17 @@ function Dashboard() {
       setLoading(false);
     }
   }
+
+  const chartData = [
+    {
+      name: 'Receitas',
+      valor: summary.totalIncome,
+    },
+    {
+      name: 'Despesas',
+      valor: summary.totalExpense,
+    },
+  ];
 
   return (
     <div className="dashboard-container">
@@ -88,14 +101,25 @@ function Dashboard() {
             </div>
           </section>
 
+          <section className="chart-section">
+            <h3>Comparativo Receitas x Despesas</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip
+                  formatter={(value) => `R$ ${Number(value).toFixed(2)}`}
+                />
+                <Bar dataKey="valor" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </section>
+
           <section className="notes">
             <p>
               Este é um resumo simples do mês selecionado, baseado nas
               transações que você cadastrou.
-            </p>
-            <p>
-              Próximos passos (depois): gráficos de evolução do saldo, despesas
-              por categoria, comparativo com mês anterior, etc.
             </p>
           </section>
         </>
@@ -109,6 +133,13 @@ function getCurrentMonth() {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   return `${year}-${month}`;
+}
+
+function getLabelForMonth(m) {
+  if (!m) return '';
+  const [year, mon] = m.split('-');
+  const date = new Date(Number(year), Number(mon) - 1, 1);
+  return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 }
 
 export default Dashboard;

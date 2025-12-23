@@ -93,42 +93,48 @@ function Register({ onRegistered, prefilledEmail }) {
 
         <div className="form-group">
           <label>Senha*</label>
-          <div className="password-wrapper">
+          <div className="password-input">
             <input
-              type={showPass ? 'text' : 'password'}
+              type={showPassword ? 'text' : 'password'}
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="off" // Adicionado para desativar o "Mostrar" do navegador
+              aria-label="Senha"
             />
             <button
               type="button"
               className="toggle-password"
-              onClick={() => setShowPass(p => !p)}
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
             >
-              {showPass ? 'Ocultar' : 'Mostrar'}
+              {showPassword ? '👁️' : '👁️‍🗨️'}
             </button>
           </div>
         </div>
 
         <div className="form-group">
-          <label>Confirmar senha*</label>
-          <div className="password-wrapper">
+          <label>Confirmar Senha*</label>
+          <div className="password-input">
             <input
-              type={showConfirmPass ? 'text' : 'password'}
-              value={confirm}
-              onChange={e => setConfirm(e.target.value)}
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
+              autoComplete="off" // Adicionado
+              aria-label="Confirmar senha"
             />
             <button
               type="button"
               className="toggle-password"
-              onClick={() => setShowConfirmPass(p => !p)}
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              aria-label={showConfirmPassword ? 'Ocultar senha' : 'Mostrar senha'}
             >
-              {showConfirmPass ? 'Ocultar' : 'Mostrar'}
+              {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
             </button>
           </div>
         </div>
-
+        
         {error && <p className="error">{error}</p>}
 
         <button type="submit" className="btn-primary">
