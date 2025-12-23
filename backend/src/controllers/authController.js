@@ -1,101 +1,82 @@
-// src/controllers/authController.js
+// backend/src/controllers/authController.js
+
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User, Circle, CircleMember } = require('../models');
-require('dotenv').config();
+const { User } = require('../models');
 
-function generateToken(userId) {
-  return jwt.sign({ userId }, process.env.JWT_SECRET || 'secret', {
-    expiresIn: '7d',
-  });
-}
-
-// POST /auth/register
 async function register(req, res) {
   try {
-    const { name, lastName, phone, email, password } = req.body;
+    const { firstName, lastName, phone, email, password } = req.body;
 
-    if (!name || !lastName || !email || !password) {
-      return res.status(400).json({ message: 'Campos obrigatórios faltando.' });
+    // Validação dos campos que o FRONT realmente envia
+    if (!firstName || !lastName || !phone || !email || !password) {
+      return res
+        .status(400)
+        .json({ message: 'Campos obrigatórios faltando.' });
     }
 
-    const existing = await User.findOne({ where: { email } });
-    if (existing) {
-      return res.status(400).json({ message: 'Email já cadastrado.' });
+    // Verificar se usuário já existe
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: 'E-mail já cadastrado.' });
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    // Monta o nome completo (se seu model tiver campo "name")
+    const name = `${firstName} ${lastName}`.trim();
 
+    // Criptografa a senha
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Cria o usuário
     const user = await User.create({
       name,
-      lastName,
-      phone,
       email,
-      passwordHash,
+      password: hashedPassword,
+      phone,
     });
-
-    // Cria um círculo padrão para o usuário (família)
-    const circle = await Circle.create({
-      name: `${name} ${lastName} - Família`,
-      ownerUserId: user.id,
-      maxMembers: 6,
-    });
-
-    await CircleMember.create({
-      circleId: circle.id,
-      userId: user.id,
-      role: 'owner',
-      status: 'active',
-    });
-
-    const token = generateToken(user.id);
 
     return res.status(201).json({
-      token,
+      message: 'Usuário criado com sucesso.',
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
-      },
-      circle: {
-        id: circle.id,
-        name: circle.name,
+        phone: user.phone,
       },
     });
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error('Erro no register:', error);
     return res.status(500).json({ message: 'Erro ao registrar usuário.' });
   }
 }
 
-// POST /auth/login
 async function login(req, res) {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: 'E-mail e senha são obrigatórios.' });
+    }
+
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      return res.status(400).json({ message: 'Email ou senha inválidos.' });
+      return res.status(401).json({ message: 'Credenciais inválidas.' });
     }
 
-    const isValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isValid) {
-      return res.status(400).json({ message: 'Email ou senha inválidos.' });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Credenciais inválidas.' });
     }
 
-    const token = generateToken(user.id);
-
-    // Buscar círculos em que o usuário participa
-    const memberships = await CircleMember.findAll({
-      where: { userId: user.id },
-      include: [Circle],
-    });
-
-    const circles = memberships.map((m) => ({
-      id: m.Circle.id,
-      name: m.Circle.name,
-      role: m.role,
-    }));
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
 
     return res.json({
       token,
@@ -104,41 +85,14 @@ async function login(req, res) {
         name: user.name,
         email: user.email,
       },
-      circles,
     });
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error('Erro no login:', error);
     return res.status(500).json({ message: 'Erro ao fazer login.' });
-  }
-}
-
-// GET /auth/me
-async function me(req, res) {
-  try {
-    const userId = req.user.id;
-    const user = await User.findByPk(userId, {
-      attributes: ['id', 'name', 'lastName', 'email', 'phone']
-    });
-
-    if (!user) {
-      return res.status(404).json({ message: 'Usuário não encontrado.' });
-    }
-
-    return res.json({
-      id: user.id,
-      firstName: user.name,
-      lastName: user.lastName,
-      email: user.email,
-      phone: user.phone
-    });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Erro ao buscar dados do usuário.' });
   }
 }
 
 module.exports = {
   register,
   login,
-  me,
 };

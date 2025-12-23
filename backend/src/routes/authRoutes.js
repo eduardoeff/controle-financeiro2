@@ -1,12 +1,14 @@
+// backend/src/routes/authRoutes.js
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-const authMiddleware = require('../middlewares/authMiddleware');
 
+// Registrar usuário (criação de conta)
+// POST /api/auth/register
 router.post('/register', authController.register);
-router.post('/login', authController.login);
 
-// nova rota
-router.get('/me', authMiddleware, authController.me);
+// Login
+// POST /api/auth/login
+router.post('/login', authController.login);
 
 module.exports = router;
