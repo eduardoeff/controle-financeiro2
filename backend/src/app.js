@@ -5,6 +5,11 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
 
+const transactionRoutes = require('./routes/transactionRoutes');
+// ... abaixo de app.use('/api/auth', authRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/dashboard', (req, res) => res.redirect('/api/transactions/dashboard'));
+
 const app = express();
 
 // Middlewares
