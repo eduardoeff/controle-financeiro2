@@ -1,8 +1,7 @@
 // backend/src/controllers/authController.js
-
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const User = require('../models/User'); // IMPORT DIRETO DO MODEL
 
 async function register(req, res) {
   try {
@@ -23,18 +22,19 @@ async function register(req, res) {
         .json({ message: 'E-mail já cadastrado.' });
     }
 
-    // Monta o nome completo (se seu model tiver campo "name")
-    const name = `${firstName} ${lastName}`.trim();
+    // Campo "name" será apenas o primeiro nome
+    const name = firstName.trim();
 
-    // Criptografa a senha
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Criptografa a senha e grava em passwordHash
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    // Cria o usuário
+    // Cria o usuário respeitando o model User.js
     const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      phone,
+      name,          // obrigatório
+      lastName,      // obrigatório
+      phone,         // opcional
+      email,         // obrigatório + unique
+      passwordHash,  // obrigatório
     });
 
     return res.status(201).json({
@@ -42,6 +42,7 @@ async function register(req, res) {
       user: {
         id: user.id,
         name: user.name,
+        lastName: user.lastName,
         email: user.email,
         phone: user.phone,
       },
@@ -67,7 +68,8 @@ async function login(req, res) {
       return res.status(401).json({ message: 'Credenciais inválidas.' });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    // Compara com passwordHash (campo do model)
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       return res.status(401).json({ message: 'Credenciais inválidas.' });
     }
@@ -83,7 +85,9 @@ async function login(req, res) {
       user: {
         id: user.id,
         name: user.name,
+        lastName: user.lastName,
         email: user.email,
+        phone: user.phone,
       },
     });
   } catch (error) {
@@ -92,6 +96,7 @@ async function login(req, res) {
   }
 }
 
+// EXPORT CORRETO
 module.exports = {
   register,
   login,
