@@ -1,19 +1,21 @@
-// src/middlewares/authMiddleware.js
+// backend/src/middlewares/authMiddleware.js
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
 
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ message: 'Token não fornecido' });
+
+  if (!authHeader) {
+    return res.status(401).json({ message: 'Token não fornecido.' });
+  }
 
   const [, token] = authHeader.split(' ');
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: decoded.userId };
+    req.userId = decoded.id;
     return next();
   } catch (err) {
-    return res.status(401).json({ message: 'Token inválido' });
+    return res.status(401).json({ message: 'Token inválido.' });
   }
 }
 

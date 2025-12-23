@@ -2,13 +2,15 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
+const authMiddleware = require('../middlewares/authMiddleware');
 
-// Registrar usuário (criação de conta)
-// POST /api/auth/register
+// Registrar usuário
 router.post('/register', authController.register);
 
 // Login
-// POST /api/auth/login
 router.post('/login', authController.login);
+
+// Usuário logado
+router.get('/me', authMiddleware, authController.me);
 
 module.exports = router;
