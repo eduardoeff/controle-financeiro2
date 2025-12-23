@@ -25,7 +25,9 @@ function Login() {
 
       const { token } = response.data;
 
-      localStorage.setItem('token', token);
+      localStorage.setItem('token', response.data.token);
+localStorage.setItem('circleId', '1'); // MOCK temporário
+navigate('/dashboard');
 
       // redireciona para dashboard (ajuste a rota se for outra)
       navigate('/dashboard');
